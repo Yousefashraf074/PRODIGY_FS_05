@@ -1,0 +1,65 @@
+# GitHub Actions CI/CD for ConnectSphere
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: connectsphere
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies (frontend)
+        run: |
+          cd frontend
+          npm ci
+      - name: Install dependencies (backend)
+        run: |
+          cd backend
+          npm ci
+      - name: Lint (frontend)
+        run: |
+          cd frontend
+          npm run lint
+      - name: Lint (backend)
+        run: |
+          cd backend
+          npm run lint
+      - name: Test (frontend)
+        run: |
+          cd frontend
+          npm test
+      - name: Test (backend)
+        run: |
+          cd backend
+          npm test
+      - name: Build Docker images
+        run: |
+          docker build -t connectsphere-frontend ./frontend
+          docker build -t connectsphere-backend ./backend
+      - name: Push Docker images
+        run: |
+          echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker push connectsphere-frontend
+          docker push connectsphere-backend
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/

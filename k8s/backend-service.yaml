@@ -1,0 +1,13 @@
+# Kubernetes Service for ConnectSphere Backend
+apiVersion: v1
+kind: Service
+metadata:
+  name: connectsphere-backend
+spec:
+  selector:
+    app: connectsphere-backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP

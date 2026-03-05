@@ -1,0 +1,12 @@
+# Kubernetes ConfigMap for Backend
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  labels:
+    app: connectsphere-backend
+  namespace: default
+
+data:
+  CLIENT_URL: http://connectsphere.local
+  REDIS_URL: redis://redis:6379

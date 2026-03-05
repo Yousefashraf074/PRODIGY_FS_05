@@ -1,0 +1,44 @@
+# Kubernetes Deployment for ConnectSphere Backend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connectsphere-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: connectsphere-backend
+  template:
+    metadata:
+      labels:
+        app: connectsphere-backend
+    spec:
+      containers:
+        - name: backend
+          image: connectsphere-backend:latest
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
